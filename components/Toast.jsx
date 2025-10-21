@@ -18,7 +18,7 @@ export const toast = {
     err: (m) => useToast.getState().push(m, "err"),
 };
 
-export default function ToastHost() {
+function ToastHost() {
     const toasts = useToast(s => s.toasts);
     useEffect(() => { }, [toasts]);
     return (
@@ -32,3 +32,5 @@ export default function ToastHost() {
         </div>
     );
 }
+
+export default ToastHost;

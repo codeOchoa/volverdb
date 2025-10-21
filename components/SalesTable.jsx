@@ -1,61 +1,119 @@
 "use client";
 
 import { useState } from "react";
+import {
+    Box,
+    IconButton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Tooltip,
+    Typography,
+} from "@mui/material";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import { useCart } from "@/store/useCart";
 
-export default function SalesTable() {
+function SalesTable() {
     const { items, inc, dec, setQty, remove } = useCart();
     const [editEan, setEditEan] = useState(null);
 
     return (
-        <div className="border rounded-2xl p-3 h-[420px] overflow-auto">
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="text-left text-gray-600">
-                        <th className="w-10">#</th>
-                        <th className="w-48">Codigo</th>
-                        <th>Detalle</th>
-                        <th className="w-40 text-center">Cantidad</th>
-                        <th className="w-28 text-right">Unitario</th>
-                        <th className="w-28 text-right">Importe</th>
-                        <th className="w-10"></th>
-                    </tr>
-                </thead>
-                <tbody>
+        <TableContainer component={Box} sx={{ bgcolor: "background.paper" }}>
+            <Table size="small" stickyHeader>
+                <TableHead>
+                    <TableRow>
+                        <TableCell width={48}>#</TableCell>
+                        <TableCell width={160}>Código</TableCell>
+                        <TableCell>Detalle</TableCell>
+                        <TableCell align="center" width={160}>
+                            Cantidad
+                        </TableCell>
+                        <TableCell align="right" width={120}>
+                            Unitario
+                        </TableCell>
+                        <TableCell align="right" width={120}>
+                            Importe
+                        </TableCell>
+                        <TableCell width={56}></TableCell>
+                    </TableRow>
+                </TableHead>
+
+                <TableBody>
                     {items.map((it, idx) => (
-                        <tr key={it.ean} className="border-t">
-                            <td>{idx + 1}</td>
-                            <td className="font-mono">{it.ean}</td>
-                            <td className="font-semibold">{it.name}</td>
-                            <td>
-                                <div className="flex items-center justify-center gap-2">
-                                    <button onClick={() => dec(it.ean)} className="px-2">–</button>
+                        <TableRow key={it.ean} hover>
+                            <TableCell>{idx + 1}</TableCell>
+                            <TableCell>
+                                <Typography variant="body2" fontFamily="monospace">
+                                    {it.ean}
+                                </Typography>
+                            </TableCell>
+                            <TableCell>
+                                <Typography fontWeight={600}>{it.name}</Typography>
+                            </TableCell>
+                            <TableCell align="center">
+                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                                    <IconButton onClick={() => dec(it.ean)} size="small">
+                                        <RemoveRoundedIcon />
+                                    </IconButton>
+
                                     {editEan === it.ean ? (
-                                        <input
-                                            autoFocus
+                                        <TextField autoFocus
                                             defaultValue={it.qty}
-                                            onBlur={(e) => { setQty(it.ean, e.target.value); setEditEan(null); }}
-                                            onKeyDown={(e) => { if (e.key === "Enter") { setQty(it.ean, e.currentTarget.value); setEditEan(null); } }}
-                                            className="w-16 text-center border rounded"
-                                        />
+                                            onBlur={(e) => {
+                                                setQty(it.ean, e.target.value);
+                                                setEditEan(null);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                    setQty(it.ean, e.currentTarget.value);
+                                                    setEditEan(null);
+                                                }
+                                            }}
+                                            size="small"
+                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*", style: { textAlign: "center", width: 56 } }} />
                                     ) : (
-                                        <span onClick={() => setEditEan(it.ean)} className="cursor-text select-none">{it.qty}</span>
+                                        <Typography onClick={() => setEditEan(it.ean)}
+                                            sx={{ cursor: "text", userSelect: "none", minWidth: 32, textAlign: "center" }}>
+                                            {it.qty}
+                                        </Typography>
                                     )}
-                                    <button onClick={() => inc(it.ean)} className="px-2">+</button>
-                                </div>
-                            </td>
-                            <td className="text-right">${it.price.toLocaleString("es-AR")}</td>
-                            <td className="text-right">${(it.price * it.qty).toLocaleString("es-AR")}</td>
-                            <td>
-                                <button onClick={() => remove(it.ean)} className="text-red-600">🗑️</button>
-                            </td>
-                        </tr>
+
+                                    <IconButton onClick={() => inc(it.ean)} size="small">
+                                        <AddRoundedIcon />
+                                    </IconButton>
+                                </Box>
+                            </TableCell>
+                            <TableCell align="right">${it.price.toLocaleString("es-AR")}</TableCell>
+                            <TableCell align="right">${(it.price * it.qty).toLocaleString("es-AR")}</TableCell>
+                            <TableCell>
+                                <Tooltip title="Eliminar">
+                                    <IconButton onClick={() => remove(it.ean)} color="error" size="small">
+                                        <DeleteOutlineRoundedIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            </TableCell>
+                        </TableRow>
                     ))}
+
                     {items.length === 0 && (
-                        <tr><td colSpan={7} className="text-center py-8 text-gray-400">Sin productos</td></tr>
+                        <TableRow>
+                            <TableCell colSpan={7} align="center">
+                                <Typography color="text.disabled" sx={{ py: 4 }}>
+                                    Sin productos
+                                </Typography>
+                            </TableCell>
+                        </TableRow>
                     )}
-                </tbody>
-            </table>
-        </div>
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 }
+
+export default SalesTable;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-export default function AdjustDialog({ open, initial = { type:"monto", value:0}, mode = "descuento", onSave, onClose }) {
+function AdjustDialog({ open, initial = { type:"monto", value:0}, mode = "descuento", onSave, onClose }) {
     const [type, setType] = useState(initial.type);
     const [value, setValue] = useState(initial.value);
 
@@ -41,3 +41,5 @@ export default function AdjustDialog({ open, initial = { type:"monto", value:0},
         </div>
     );
 }
+
+export default AdjustDialog;
