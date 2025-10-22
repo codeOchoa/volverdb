@@ -1,24 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-    Box,
-    Button,
-    Grid,
-    IconButton,
-    InputAdornment,
-    TextField,
-    Typography,
-    ButtonGroup,
-} from "@mui/material";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
+import { Box, Button, ButtonGroup, Grid, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { NotificationBar } from "@/components/index";
 import { useCart } from "@/store/useCart";
-import { toast } from "./Toast";
 import { validateEAN } from "@/utils/validateEAN";
 
 function ProductInput() {
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const [ean, setEan] = useState("");
     const [qty, setQty] = useState(1);
     const addItem = useCart((s) => s.addItem);
@@ -32,17 +24,17 @@ function ProductInput() {
     const doSearch = async () => {
         if (!ean) return;
         if (!validateEAN(ean)) {
-            toast.err("Código inválido");
+            setNotify({ open: true, message: "Código inválido", severity: "error" });
             return;
         }
         const res = await fetch(`/api/products/find?ean=${encodeURIComponent(ean)}`);
         const data = await res.json();
         if (!res.ok || !data) {
-            toast.err("Producto no registrado / inexistente");
+            setNotify({ open: true, message: "Producto no registrado / inexistente", severity: "error" });
             return;
         }
         addItem(data, Number(qty) || 1);
-        toast.ok("Producto añadido");
+        setNotify({ open: true, message: "Producto añadido", severity: "success" });
         setEan("");
         setQty(1);
         eanRef.current?.focus();
@@ -71,8 +63,7 @@ function ProductInput() {
                     })}>
                     EAN / SKU
                 </Typography>
-                <Box sx={{
-                        border: "1px solid",
+                <Box sx={{ border: "1px solid",
                         borderTop: "none",
                         borderColor: "divider",
                         borderBottomLeftRadius: 12,
@@ -106,8 +97,7 @@ function ProductInput() {
                     })}>
                     Cantidad
                 </Typography>
-                <Box sx={{
-                        border: "1px solid",
+                <Box sx={{ border: "1px solid",
                         borderTop: "none",
                         borderColor: "divider",
                         borderBottomLeftRadius: 12,
@@ -145,6 +135,10 @@ function ProductInput() {
                     Buscar
                 </Button>
             </Grid>
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
         </Grid>
     );
 }

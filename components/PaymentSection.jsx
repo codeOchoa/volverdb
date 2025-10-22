@@ -1,6 +1,6 @@
 "use client";
 
-import { FormControl, InputLabel, MenuItem, Select, Typography, Box } from "@mui/material";
+import { Box, FormControl, InputLabel, MenuItem, Select, Typography } from "@mui/material";
 import { useCart } from "@/store/useCart";
 
 const methods = ["Efectivo", "QR", "Tarjeta Debito", "Tarjeta Credito", "Transferencia", "NFC", "Link", "Otros"];
@@ -24,8 +24,7 @@ function PaymentSection() {
                 Metodo de Pago
             </Typography>
 
-            <Box sx={{
-                    border: "1px solid",
+            <Box sx={{ border: "1px solid",
                     borderTop: "none",
                     borderColor: "divider",
                     borderBottomLeftRadius: 12,

@@ -7,7 +7,6 @@ function LoadingOverlay({ active = false }) {
 
     return (
         <>
-            {/* Blur sobre el contenido */}
             <Box sx={{
                     position: "fixed",
                     inset: 0,
@@ -15,7 +14,6 @@ function LoadingOverlay({ active = false }) {
                     backgroundColor: "rgba(0,0,0,0.1)",
                     zIndex: 1200,
                 }} />
-            {/* Barra de progreso inferior */}
             <Box sx={{
                     width: "100%",
                     position: "fixed",

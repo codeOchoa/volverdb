@@ -1,16 +1,4 @@
-// import { formatARS } from "@/utils/formatCurrency";
-// import { validateEAN } from "@/utils/validateEAN";
-// import { getDateTime } from "@/utils/getDateTime";
-// import { useConfirmDialog, useHotkeys, useToastMessage } from "@/hooks/index";
-
-
-// const { full } = getDateTime(); // "2025-10-17 15:24:02"
-// const { openConfirm, ConfirmDialogProps } = useConfirmDialog();
-// const { show } = useToastMessage();
-//     show("Producto añadido", "success");
-
-//     <ConfirmDialog {...ConfirmDialogProps} /> // Abrir:
-// openConfirm({ title:"Finalizar venta", message:"¿Confirmás?", onConfirm: handleFinish });
+// import { useHotkeys } from "@/hooks/index";
 
 // useHotkeys({
 //     onClear: handleClearCart,
@@ -18,74 +6,93 @@
 //     onCancel: closeModal,
 // });
 
-// if (!validateEAN(ean)) {
-//     toast.err("Código inválido");
-//     return;
-// }
-
 "use client";
 
 import { useState } from "react";
-import { Box, Container, Grid, IconButton, Paper, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, IconButton, Modal, Paper, styled, Typography } from "@mui/material";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import { CartSummary, ConfirmDialog, PaymentSection, ProductInput, SalesTable, ToastHost } from "@/components/index";
+import { CartSummary, LoadingOverlay, NotificationBar, PaymentSection, ProductInput, SalesTable } from "@/components/index";
 import { useCart } from "@/store/useCart";
 
 export default function SalesPage() {
     const [confirmLeave, setConfirmLeave] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const clear = useCart((s) => s.clear);
 
+    const SalesPageContainer = styled(Container)(({ theme }) => ({
+        maxWidth: 'lg', 
+        boxShadow:
+            'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
+        ...theme.applyStyles('dark', {
+            boxShadow:
+                'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
+        }),
+    }));
+
+    const SalesPageBox = styled(Box)(({ theme }) => ({
+        minheight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
+        maxHeight: 874,
+        minHeight: '100%',
+        padding: theme.spacing(2),
+        [theme.breakpoints.up('sm')]: {
+            padding: theme.spacing(4),
+        },
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: { xs: 2, sm: 4 },
+        py: { xs: 2, sm: 3 },
+        backgroundImage:
+            "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+            backgroundRepeat: 'no-repeat',
+        ...theme.applyStyles("dark", {
+            backgroundImage:
+                "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
+        }),
+        transition: theme.transitions.create("background-image", {
+            duration: theme.transitions.duration.standard,
+        }),
+    }));
+
+    const handleLeave = async () => {
+        setConfirmLeave(false);
+        setLoading(true);
+        await new Promise((r) => setTimeout(r, 700));
+        clear();
+        setLoading(false);
+        setNotify({ open: true, message: "Sesión cerrada, carrito eliminado", severity: "info" });
+        window.location.href = "/dashboard";
+    };
+
     return (
-        <Box sx={(theme) => ({
-                minHeight: "100dvh",
-                // Altura objetivo sin scroll de página:
-                maxHeight: 874,
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                px: { xs: 2, sm: 4 },
-                py: { xs: 2, sm: 3 },
-                backgroundImage:
-                    theme.palette.mode === "dark"
-                        ? "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))"
-                        : "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-                backgroundRepeat: "no-repeat",
-                transition: theme.transitions.create("background-image", {
-                    duration: theme.transitions.duration.standard,
-                }),
-            })}>
-            <Container maxWidth="lg" disableGutters>
+        <SalesPageBox>
+            <SalesPageContainer disableGutters>
                 <Paper elevation={0}
-                    sx={{
-                        mx: "auto",
+                    sx={{ mx: "auto",
                         p: { xs: 2, sm: 3 },
                         borderRadius: 3,
                         bgcolor: "background.paper",
                         boxShadow:
                             "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
                     }}>
-                    {/* Header */}
                     <Box sx={{ position: "relative", mb: 2, display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <Typography variant="h4" fontWeight={800} letterSpacing={0.5}>
                             CARRITO
                         </Typography>
-                        <IconButton
-                            onClick={() => setConfirmLeave(true)}
+                        <IconButton onClick={() => setConfirmLeave(true)}
                             sx={{ position: "absolute", right: 0, borderRadius: 2, border: "1px solid", borderColor: "divider" }}
                             aria-label="Configuración">
                             <SettingsRoundedIcon />
                         </IconButton>
                     </Box>
 
-                    {/* Tabla (con scroll interno, altura fija) */}
                     <Box
-                        sx={{
-                            borderRadius: 2,
+                        sx={{ borderRadius: 2,
                             border: "1px solid",
                             borderColor: "divider",
                             p: 1.5,
-                            // Altura pensada para encajar en 874px totales:
                             height: { xs: 340, md: 400 },
                             overflow: "auto",
                             bgcolor: "background.paper",
@@ -93,7 +100,6 @@ export default function SalesPage() {
                         <SalesTable />
                     </Box>
 
-                    {/* Controles inferiores */}
                     <Grid container spacing={3} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 12, md: 8 }}>
                             <ProductInput />
@@ -101,31 +107,50 @@ export default function SalesPage() {
                         </Grid>
 
                         <Grid size={{ xs: 12, md: 4 }}>
-                            {/* Panel derecho con altura controlada y overflow interno */}
                             <CartSummary
-                                sx={{
-                                    height: { xs: 240, md: 260 },
+                                sx={{ height: { xs: 240, md: 260 },
                                     display: "flex",
                                     flexDirection: "column",
                                 }} />
                         </Grid>
                     </Grid>
                 </Paper>
-            </Container>
+            </SalesPageContainer>
 
-            <ConfirmDialog
-                open={confirmLeave}
-                title="Salir al dashboard"
-                message="Si sales del Carrito, este será eliminado."
-                confirmText="Continuar"
-                onCancel={() => setConfirmLeave(false)}
-                onConfirm={() => {
-                    setConfirmLeave(false);
-                    clear();
-                    window.location.href = "/dashboard";
-                }} />
-
-            <ToastHost />
-        </Box>
+            <Modal open={confirmLeave} onClose={() => setConfirmLeave(false)}>
+                <Box
+                    sx={{ position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 360,
+                        bgcolor: "background.paper",
+                        p: 3,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                    }}>
+                    <Typography variant="h6" mb={1}>
+                        Salir al dashboard
+                    </Typography>
+                    <Typography variant="body2" mb={3}>
+                        Si sales del carrito, este será eliminado.
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                        <Button onClick={() => setConfirmLeave(false)}>Cancelar</Button>
+                        <Button variant="contained" color="error" onClick={handleLeave}>
+                            Continuar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+            
+            <NotificationBar
+                open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
+        
+            <LoadingOverlay active={loading} />
+        </SalesPageBox>
     );
 }

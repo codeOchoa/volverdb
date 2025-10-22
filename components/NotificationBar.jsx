@@ -1,6 +1,6 @@
 "use client";
 
-import { Snackbar, Alert } from "@mui/material";
+import { Alert, Snackbar } from "@mui/material";
 import { useState, forwardRef } from "react";
 
 const NotificationBar = forwardRef(({ open, message, severity, onClose }, ref) => (
@@ -8,7 +8,7 @@ const NotificationBar = forwardRef(({ open, message, severity, onClose }, ref) =
         open={open}
         onClose={onClose}
         autoHideDuration={2200}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>
         <Alert onClose={onClose} severity={severity} variant="filled" sx={{ width: "100%" }}>
             {message}
         </Alert>

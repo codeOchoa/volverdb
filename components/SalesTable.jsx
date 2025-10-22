@@ -14,8 +14,8 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import { useCart } from "@/store/useCart";
 

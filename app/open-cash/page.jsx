@@ -3,13 +3,19 @@
 import * as React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Typography, Stack, Card } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Input from '@mui/material/Input';
-import InputLabel from '@mui/material/InputLabel';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControl from '@mui/material/FormControl';
-import useToastMessage from "@/hooks/useToastMessage";
+import { Box, 
+    Button, 
+    Card, 
+    Input, 
+    InputAdornment, 
+    InputLabel, 
+    FormControl, 
+    Modal, 
+    Typography, 
+    Stack, 
+    styled 
+} from "@mui/material";
+import { LoadingOverlay, NotificationBar } from "@/components/index";
 import { getDateTime } from "@/utils/getDateTime";
 
 const OpenCashContainer = styled(Stack)(({ theme }) => ({
@@ -35,25 +41,33 @@ const OpenCashContainer = styled(Stack)(({ theme }) => ({
 
 export default function OpenCashPage() {
     const [amount, setAmount] = useState("");
+    const [openConfirm, setOpenConfirm] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const router = useRouter();
-    const { show } = useToastMessage();
 
     const handleOpenCash = async () => {
-        if (!amount || Number(amount) <= 0) {
-            show("Ingresá un monto válido para abrir la caja", "error");
-            return;
-        }
-
         const { date, full } = getDateTime();
-        await fetch("/api/cash/open", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ date, initialAmount: amount, openedAt: full }),
-        });
-
-        localStorage.setItem("cashStatus", date);
-        show("Caja abierta correctamente", "success");
-        router.push("/sales");
+        setOpenConfirm(false);
+        setLoading(true);
+        try {
+            const res = await fetch("/api/cash/open", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, initialAmount: amount, openedAt: full }),
+            });
+            if (res.ok) {
+                setNotify({ open: true, message: "Caja abierta correctamente", severity: "success" });
+                localStorage.setItem("cashStatus", date);
+                setTimeout(() => router.push("/sales"), 1000);
+            } else {
+                setNotify({ open: true, message: "Error al abrir la caja", severity: "error" });
+            }
+        } catch {
+            setNotify({ open: true, message: "Error de conexión", severity: "error" });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -80,11 +94,10 @@ export default function OpenCashPage() {
                             top: "-4px", }}>Ingresá el monto inicial en efectivo</InputLabel>
                     <Input id="standard-adornment-amount"
                         size="normal"
-                        inputProps={{ min: 0 }}
-                        onChange={(e) => setAmount(e.target.value)}
+                        inputProps={{ min: 0, inputMode: "decimal" }}
                         value={amount}
-                        sx={{
-                            fontSize: "3rem", 
+                        onChange={(e) => setAmount(e.target.value)}
+                        sx={{ fontSize: "3rem", 
                             fontWeight: 100, 
                             height: "5rem", 
                             maxWidth: "280px", 
@@ -98,10 +111,41 @@ export default function OpenCashPage() {
                 <Button variant="contained"
                     size="large"
                     sx={{ mt: 2 }}
-                    onClick={handleOpenCash}>
+                    onClick={() => setOpenConfirm(true)}
+                    disabled={!amount || loading}>
                     Abrir Caja
                 </Button>
             </Card>
+            <Modal open={openConfirm} onClose={() => setOpenConfirm(false)}>
+                <Box sx={{ position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 360,
+                        bgcolor: "background.paper",
+                        p: 3,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                    }}>
+                    <Typography variant="h6" mb={1}>
+                        Confirmar apertura
+                    </Typography>
+                    <Typography variant="body2" mb={3}>
+                        ¿Deseás abrir la caja con ${amount} en efectivo?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                        <Button onClick={() => setOpenConfirm(false)}>Cancelar</Button>
+                        <Button variant="contained" onClick={handleOpenCash}>
+                            Confirmar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
+            <LoadingOverlay active={loading} />
         </OpenCashContainer>
     );
 }

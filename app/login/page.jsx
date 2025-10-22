@@ -3,18 +3,20 @@
 import * as React from 'react';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Link from '@mui/material/Link';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MuiCard from '@mui/material/Card';
-import { styled } from '@mui/material/styles';
+import { Box, 
+    Button, 
+    Card as MuiCard, 
+    Checkbox, 
+    FormControl, 
+    FormControlLabel, 
+    FormLabel, 
+    Link, 
+    TextField, 
+    Typography, 
+    Stack, 
+    styled 
+} from '@mui/material';
+import { LoadingOverlay, NotificationBar } from "@/components/index";
 // import { ForgotPassword } from '../../components/index';
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -59,8 +61,8 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 
 export default function LoginPage() {
     const [form, setForm] = useState({ username: "", password: "" });
-    const [passwordError, setPasswordError] = React.useState(false);
-    const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
+    const [loading, setLoading] = useState(false);
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     // const [open, setOpen] = React.useState(false);
     const router = useRouter();
 
@@ -68,33 +70,26 @@ export default function LoginPage() {
     // const handleClose = () => { setOpen(false); };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setPasswordError(false);
-    setPasswordErrorMessage('');
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
 
-    if (!form.username.trim() || !form.password.trim()) {
-        setPasswordError(true);
-        setPasswordErrorMessage('Usuario o contraseña incorrectos.');
-        return;
-    }
-
-    try {
-        const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
-        });
-
-        if (res.ok) {
-            router.push("/open-cash");
-        } else {
-            setPasswordError(true);
-            setPasswordErrorMessage('Usuario o contraseña incorrectos.');
-        }
+            if (res.ok) {
+                setNotify({ open: true, message: "Inicio de sesión correcto", severity: "success" });
+                setTimeout(() => router.push("/open-cash"), 800);
+            } else {
+            setNotify({ open: true, message: "Usuario o contraseña incorrectos", severity: "error" });
+            }
         } catch (err) {
-            console.error("Error en login:", err);
-            setPasswordError(true);
-            setPasswordErrorMessage('Usuario o contraseña incorrectos.');
+            console.error(err);
+            setNotify({ open: true, message: "Error de conexión", severity: "error" });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -109,16 +104,14 @@ export default function LoginPage() {
                 <Box component="form"
                     onSubmit={handleSubmit}
                     noValidate
-                    sx={{
-                        display: 'flex',
+                    sx={{ display: 'flex',
                         flexDirection: 'column',
                         width: '100%',
                         gap: 2,
                     }}>
                     <FormControl>
                         <FormLabel htmlFor="username">Usuario</FormLabel>
-                        <TextField
-                            id="username"
+                        <TextField id="username"
                             type="text"
                             name="username"
                             placeholder="tu_usuario"
@@ -131,10 +124,7 @@ export default function LoginPage() {
                     </FormControl>
                     <FormControl>
                         <FormLabel htmlFor="password">Contraseña</FormLabel>
-                        <TextField
-                            error={passwordError}
-                            helperText={passwordErrorMessage}
-                            name="password"
+                        <TextField name="password"
                             placeholder="••••••"
                             type="password"
                             id="password"
@@ -144,13 +134,11 @@ export default function LoginPage() {
                             variant="outlined"
                             onChange={(e) => setForm({ ...form, password: e.target.value })} />
                     </FormControl>
-                    <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" />}
+                    <FormControlLabel control={<Checkbox value="remember" color="primary" />}
                         label="Recordar" />
                     {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
-                    <Button
-                        type="submit"
-                        fullWidth
+                    <Button type="submit"
+                        fullWidth disabled={loading}
                         variant="contained">
                         Iniciar Sesión
                     </Button>
@@ -164,6 +152,11 @@ export default function LoginPage() {
                     </Link>
                 </Box>
             </Card>
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
+            <LoadingOverlay active={loading} />
         </SignInContainer>
     );
 }

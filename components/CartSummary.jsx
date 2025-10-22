@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Grid, Paper, Typography } from "@mui/material";
+import { Box, Button, Grid, Modal, Paper, Typography } from "@mui/material";
+import { AdjustDialog, NotificationBar } from "@/components/index";
 import { useCart } from "@/store/useCart";
-import ConfirmDialog from "./ConfirmDialog";
-import AdjustDialog from "./AdjustDialog";
-import { toast } from "./Toast";
 
 function CartSummary({ sx = {} }) {
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const subtotal = useCart((s) => s.subtotal());
     const adj = useCart((s) => s.adjValue());
     const total = useCart((s) => s.total());
@@ -25,7 +24,7 @@ function CartSummary({ sx = {} }) {
     const finalize = async () => {
         setConfirmFinish(false);
         if (items.length === 0) {
-            toast.warn("No hay productos en el carrito");
+            setNotify({ open: true, message: "No hay productos en el carrito", severity: "warn" });
             return;
         }
         const payload = {
@@ -42,26 +41,22 @@ function CartSummary({ sx = {} }) {
             body: JSON.stringify(payload),
         });
         if (res.ok) {
-            toast.ok("Venta registrada");
-            clear();
+            setNotify({ open: true, message: "Venta registrada", severity: "success" });
         } else {
-            toast.err("No se pudo registrar la venta");
+            setNotify({ open: true, message: "No se pudo registrar la venta", severity: "error" });
         }
     };
 
     return (
         <>
             <Paper variant="outlined"
-                sx={{
-                    borderRadius: 3,
+                sx={{ borderRadius: 3,
                     p: 2,
                     display: "flex",
                     flexDirection: "column",
                     gap: 1.5,
-                    // altura controlada desde props (Page) + scroll interno si hiciera falta
                     ...sx,
                 }}>
-                {/* Bloque de montos - NO crece, se mantiene */}
                 <Box sx={(theme) => ({
                         borderRadius: 2,
                         p: 2,
@@ -91,7 +86,6 @@ function CartSummary({ sx = {} }) {
                     </Box>
                 </Box>
 
-                {/* Botones de ajuste */}
                 <Grid container spacing={1.5}>
                     <Grid size={6}>
                         <Button onClick={() => setOpenDesc(true)} fullWidth variant="outlined">
@@ -105,7 +99,6 @@ function CartSummary({ sx = {} }) {
                     </Grid>
                 </Grid>
 
-                {/* Botones principales */}
                 <Grid container spacing={1.5}>
                     <Grid size={6}>
                         <Button onClick={() => setConfirmClear(true)} fullWidth variant="contained" color="error">
@@ -118,28 +111,74 @@ function CartSummary({ sx = {} }) {
                         </Button>
                     </Grid>
                 </Grid>
-
-                {/* Si en este panel agregás más contenido a futuro (e.g., lista corta, vouchers, etc.),
-            envolvelo en un <Box sx={{ flex:1, overflowY:'auto' }}> para evitar crecer el contenedor */}
+                {/* Si agregás más contenido a futuro envolvelo en un
+            <Box sx={{ flex:1, overflowY:'auto' }}> para evitar crecer el contenedor */}
             </Paper>
 
-            {/* Modales */}
-            <ConfirmDialog open={confirmClear}
-                title="Limpiar carrito"
-                message="¿Seguro que deseas eliminar todos los productos del carrito?"
-                confirmText="Eliminar"
-                onConfirm={() => {
-                    setConfirmClear(false);
-                    clear();
-                    toast.info("Carrito vacío");
-                }}
-                onCancel={() => setConfirmClear(false)} />
-            <ConfirmDialog open={confirmFinish}
-                title="Finalizar venta"
-                message="¿Confirmás el registro de la venta?"
-                confirmText="Finalizar"
-                onConfirm={finalize}
-                onCancel={() => setConfirmFinish(false)} />
+            <Modal open={confirmClear} onClose={() => setConfirmClear(false)}>
+                <Box sx={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: 360,
+                    bgcolor: "background.paper",
+                    p: 3,
+                    borderRadius: 2,
+                    boxShadow: 24,
+                }}>
+                    <Typography variant="h6" mb={1}>
+                        Limpiar carrito
+                    </Typography>
+                    <Typography variant="body2" mb={3}>
+                        ¿Seguro que deseas eliminar todos los productos del carrito?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                        <Button onClick={() => setConfirmClear(false)}>Cancelar</Button>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={() => {
+                                setConfirmClear(false);
+                                clear();
+                                setNotify({  open: true,
+                                    message: "Carrito vacío",
+                                    severity: "info",
+                                });
+                            }}>
+                            Eliminar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
+            <Modal open={confirmFinish} onClose={() => setConfirmFinish(false)}>
+                <Box
+                    sx={{ position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 360,
+                        bgcolor: "background.paper",
+                        p: 3,
+                        borderRadius: 2,
+                        boxShadow: 24,
+                    }}>
+                    <Typography variant="h6" mb={1}>
+                        Finalizar venta
+                    </Typography>
+                    <Typography variant="body2" mb={3}>
+                        ¿Confirmás el registro de la venta?
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                        <Button onClick={() => setConfirmFinish(false)}>Cancelar</Button>
+                        <Button variant="contained" onClick={finalize}>
+                            Finalizar
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+
             <AdjustDialog open={openDesc}
                 mode="descuento"
                 initial={adjustment}
@@ -148,6 +187,7 @@ function CartSummary({ sx = {} }) {
                     setOpenDesc(false);
                 }}
                 onClose={() => setOpenDesc(false)} />
+
             <AdjustDialog open={openRec}
                 mode="recargo"
                 initial={adjustment}
@@ -156,6 +196,11 @@ function CartSummary({ sx = {} }) {
                     setOpenRec(false);
                 }}
                 onClose={() => setOpenRec(false)} />
+
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
         </>
     );
 }
