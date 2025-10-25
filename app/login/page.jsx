@@ -152,10 +152,12 @@ export default function LoginPage() {
                     </Link>
                 </Box>
             </Card>
+            
             <NotificationBar open={notify.open}
                 message={notify.message}
                 severity={notify.severity}
                 onClose={() => setNotify({ ...notify, open: false })} />
+
             <LoadingOverlay active={loading} />
         </SignInContainer>
     );

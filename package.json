@@ -2,7 +2,7 @@
     "title": "VolverDB",
     "name": "volverdb",
     "description": "Gestor de ventas para comercios",
-    "version": "0.0.3",
+    "version": "0.0.8",
     "author": "codeOchoa",
     "private": true,
     "repository": {

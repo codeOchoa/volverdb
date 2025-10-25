@@ -116,6 +116,7 @@ export default function OpenCashPage() {
                     Abrir Caja
                 </Button>
             </Card>
+            
             <Modal open={openConfirm} onClose={() => setOpenConfirm(false)}>
                 <Box sx={{ position: "absolute",
                         top: "50%",
@@ -141,10 +142,12 @@ export default function OpenCashPage() {
                     </Box>
                 </Box>
             </Modal>
+
             <NotificationBar open={notify.open}
                 message={notify.message}
                 severity={notify.severity}
                 onClose={() => setNotify({ ...notify, open: false })} />
+
             <LoadingOverlay active={loading} />
         </OpenCashContainer>
     );

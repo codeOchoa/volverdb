@@ -30,6 +30,9 @@ export default function SalesPage() {
         }),
     }));
 
+    // Arreglar el Container que funciona como fondo, porque se adapta al Box hijo, 
+    // lo cual rompe el diseño, ya que crea una franja inferior sin el fondo deseado.
+
     const SalesPageBox = styled(Box)(({ theme }) => ({
         minheight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
         maxHeight: 874,
@@ -46,6 +49,9 @@ export default function SalesPage() {
         py: { xs: 2, sm: 3 },
         backgroundImage:
             "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
             backgroundRepeat: 'no-repeat',
         ...theme.applyStyles("dark", {
             backgroundImage:
