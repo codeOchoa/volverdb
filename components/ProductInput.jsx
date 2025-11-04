@@ -135,10 +135,12 @@ function ProductInput() {
                     Buscar
                 </Button>
             </Grid>
+
             <NotificationBar open={notify.open}
                 message={notify.message}
                 severity={notify.severity}
                 onClose={() => setNotify({ ...notify, open: false })} />
+                
         </Grid>
     );
 }

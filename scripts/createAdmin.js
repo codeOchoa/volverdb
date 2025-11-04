@@ -2,9 +2,9 @@ import bcrypt from "bcryptjs";
 import { usersDB } from "../lib/db.js";
 
 const createAdmin = async () => {
-    const hash = await bcrypt.hash("13mortadelas", 10);
+    const hash = await bcrypt.hash("Dark1557", 10);
     await usersDB.insert({
-        username: "raviol",
+        username: "volver",
         password: hash,
         role: "admin",
     });

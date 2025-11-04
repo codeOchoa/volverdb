@@ -1,13 +1,25 @@
-import { cashDB } from "@/lib/db";
+import db from "@/lib/db";
 
 export async function POST(req) {
-    const { date, initialAmount } = await req.json();
+    try {
+        const { date, initialAmount } = await req.json();
 
-    await cashDB.insert({
-        date,
-        initialAmount: parseFloat(initialAmount),
-        openedAt: new Date(),
-    });
+        const [openCash] = await db.query(
+            "SELECT id FROM cash_register WHERE status = 'open' LIMIT 1"
+        );
 
-    return Response.json({ ok: true });
+        if (openCash.length > 0) {
+            return Response.json({ ok: false, message: "Ya hay una caja abierta" }, { status: 400 });
+        }
+
+        await db.query(
+            "INSERT INTO cash_register (date, initial_amount, opened_at, status) VALUES (?, ?, NOW(), 'open')",
+            [date, parseFloat(initialAmount)]
+        );
+
+        return Response.json({ ok: true, message: "Caja abierta correctamente" });
+    } catch (err) {
+        console.error("Error abriendo caja:", err);
+        return Response.json({ ok: false, error: err.message }, { status: 500 });
+    }
 }

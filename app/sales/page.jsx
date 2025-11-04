@@ -14,53 +14,44 @@ import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 import { CartSummary, LoadingOverlay, NotificationBar, PaymentSection, ProductInput, SalesTable } from "@/components/index";
 import { useCart } from "@/store/useCart";
 
+const SalesPageContainer = styled(Container)(({ theme }) => ({
+    width: '100%',
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
+    boxSizing: 'border-box',
+}));
+
+const SalesPageBox = styled(Box)(({ theme }) => ({
+    minHeight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
+    maxHeight: 874,
+    padding: theme.spacing(2),
+    [theme.breakpoints.up('sm')]: {
+        padding: theme.spacing(4),
+    },
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundImage:
+        "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    backgroundRepeat: 'no-repeat',
+    ...theme.applyStyles("dark", {
+        backgroundImage:
+            "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
+    }),
+    transition: theme.transitions.create("background-image", {
+        duration: theme.transitions.duration.standard,
+    }),
+}));
+
 export default function SalesPage() {
     const [confirmLeave, setConfirmLeave] = useState(false);
     const [loading, setLoading] = useState(false);
     const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const clear = useCart((s) => s.clear);
-
-    const SalesPageContainer = styled(Container)(({ theme }) => ({
-        maxWidth: 'lg', 
-        boxShadow:
-            'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
-        ...theme.applyStyles('dark', {
-            boxShadow:
-                'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
-        }),
-    }));
-
-    // Arreglar el Container que funciona como fondo, porque se adapta al Box hijo, 
-    // lo cual rompe el diseño, ya que crea una franja inferior sin el fondo deseado.
-
-    const SalesPageBox = styled(Box)(({ theme }) => ({
-        minheight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
-        maxHeight: 874,
-        minHeight: '100%',
-        padding: theme.spacing(2),
-        [theme.breakpoints.up('sm')]: {
-            padding: theme.spacing(4),
-        },
-        overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: { xs: 2, sm: 4 },
-        py: { xs: 2, sm: 3 },
-        backgroundImage:
-            "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-            backgroundRepeat: 'no-repeat',
-        ...theme.applyStyles("dark", {
-            backgroundImage:
-                "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
-        }),
-        transition: theme.transitions.create("background-image", {
-            duration: theme.transitions.duration.standard,
-        }),
-    }));
 
     const handleLeave = async () => {
         setConfirmLeave(false);
@@ -74,7 +65,7 @@ export default function SalesPage() {
 
     return (
         <SalesPageBox>
-            <SalesPageContainer disableGutters>
+            <SalesPageContainer>
                 <Paper elevation={0}
                     sx={{ mx: "auto",
                         p: { xs: 2, sm: 3 },
@@ -157,6 +148,7 @@ export default function SalesPage() {
                 onClose={() => setNotify({ ...notify, open: false })} />
         
             <LoadingOverlay active={loading} />
+            
         </SalesPageBox>
     );
 }

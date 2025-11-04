@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Box, 
     Button, 
@@ -42,9 +42,39 @@ const OpenCashContainer = styled(Stack)(({ theme }) => ({
 export default function OpenCashPage() {
     const [amount, setAmount] = useState("");
     const [openConfirm, setOpenConfirm] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
     const router = useRouter();
+
+    useEffect(() => {
+        const checkCashStatus = async () => {
+            try {
+                const res = await fetch("/api/cash/status");
+                const data = await res.json();
+
+                if (data.ok && data.isOpen) {
+                    setNotify({
+                        open: true,
+                        message: "Caja ya abierta, redirigiendo a ventas...",
+                        severity: "info",
+                    });
+                    setTimeout(() => router.push("/sales"), 1500);
+                } else {
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("Error al verificar caja:", err);
+                setNotify({
+                    open: true,
+                    message: "No se pudo verificar el estado de la caja",
+                    severity: "error",
+                });
+                setLoading(false);
+            }
+        };
+
+        checkCashStatus();
+    }, [router]);
 
     const handleOpenCash = async () => {
         const { date, full } = getDateTime();
@@ -56,10 +86,13 @@ export default function OpenCashPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ date, initialAmount: amount, openedAt: full }),
             });
-            if (res.ok) {
+
+            const data = await res.json();
+
+            if (data.ok) {
                 setNotify({ open: true, message: "Caja abierta correctamente", severity: "success" });
                 localStorage.setItem("cashStatus", date);
-                setTimeout(() => router.push("/sales"), 1000);
+                setTimeout(() => router.push("/sales"), 800);
             } else {
                 setNotify({ open: true, message: "Error al abrir la caja", severity: "error" });
             }
@@ -149,9 +182,7 @@ export default function OpenCashPage() {
                 onClose={() => setNotify({ ...notify, open: false })} />
 
             <LoadingOverlay active={loading} />
+
         </OpenCashContainer>
     );
 }
-
-
-

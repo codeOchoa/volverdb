@@ -5,7 +5,7 @@ import { create } from "zustand";
 const calcSubtotal = (items) => items.reduce((a, i) => a + i.price * i.qty, 0);
 const applyAdj = (subtotal, adj) => {
     if (!adj) return 0;
-    const { type, value } = adj; // type: "monto" | "porcentaje", value: number (positivo/descuento, negativo/recargo? usaremos signo)
+    const { type, value } = adj; 
     if (type === "monto") return value;
     if (type === "porcentaje") return subtotal * (value / 100);
     return 0;
@@ -14,7 +14,7 @@ const applyAdj = (subtotal, adj) => {
 export const useCart = create((set, get) => ({
     items: [],
     paymentMethod: "Efectivo",
-    adjustment: { label: "Descuento / Recargo", value: 0, type: "monto" }, // puede ser negativo (recargo) o positivo (descuento negativo) según el signo que apliquemos
+    adjustment: { label: "Descuento / Recargo", value: 0, type: "monto" }, 
     addItem: (prod, qty = 1) => {
         const items = [...get().items];
         const idx = items.findIndex(i => i.ean === prod.ean);
@@ -33,7 +33,7 @@ export const useCart = create((set, get) => ({
     adjValue: () => applyAdj(get().subtotal(), get().adjustment),
     total: () => {
         const sub = get().subtotal();
-        const adj = get().adjValue(); // puede ser positivo (descuento) o negativo (recargo)
+        const adj = get().adjValue();
         return Math.max(0, sub + adj);
     }
 }));

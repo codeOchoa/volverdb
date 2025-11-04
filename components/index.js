@@ -1,5 +1,8 @@
 import AdjustDialog from "./AdjustDialog";
 import CartSummary from "./CartSummary";
+// import DashboardPage from "./DashboardPage";
+import EditDialog from "./EditDialog";
+// import ExcelUploader from "./ExcelUploader";
 // import ForgotPassword from "./ForgotPassword";
 import LoadingOverlay from "./LoadingOverlay";
 import NotificationBar from "./NotificationBar";
@@ -9,17 +12,24 @@ import ProductModal from "./ProductModal";
 import ProductTable from "./ProductTable";
 import ProductToolbar from "./ProductToolbar";
 import SalesTable from "./SalesTable";
+// import StatsSummary from "./StatsSummary";
+import UploadProducts from "./UploadProducts";
 
 export {
     AdjustDialog, 
     CartSummary, 
-    // ForgotPassword,
+    // DashboardPage, 
+    EditDialog, 
+    // ExcelUploader, 
+    // ForgotPassword, 
     LoadingOverlay, 
-    NotificationBar,
+    NotificationBar, 
     PaymentSection, 
     ProductInput, 
     ProductModal, 
     ProductTable, 
     ProductToolbar, 
-    SalesTable 
+    SalesTable, 
+    // StatsSummary, 
+    UploadProducts
 };

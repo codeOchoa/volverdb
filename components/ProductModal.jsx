@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-    Modal,
+import { Modal,
     Box,
     Typography,
     TextField,
     Button,
-    Grid2 as Grid,
+    Grid,
 } from "@mui/material";
-import LoadingOverlay from "./LoadingOverlay";
-import NotificationBar from "./NotificationBar";
+import { LoadingOverlay, NotificationBar } from "@/components/index";
 
-export default function ProductModal({
+function ProductModal({
     open,
     onClose,
     mode = "create",
@@ -210,8 +208,11 @@ export default function ProductModal({
                     message={notify.message}
                     severity={notify.severity}
                     onClose={() => setNotify({ ...notify, open: false })} />
+                    
                 <LoadingOverlay active={loading} />
             </Box>
         </Modal>
     );
 }
+
+export default ProductModal;

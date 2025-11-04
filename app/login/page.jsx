@@ -81,7 +81,7 @@ export default function LoginPage() {
 
             if (res.ok) {
                 setNotify({ open: true, message: "Inicio de sesión correcto", severity: "success" });
-                setTimeout(() => router.push("/open-cash"), 800);
+                setTimeout(() => router.push("/open-cash"), 200);
             } else {
             setNotify({ open: true, message: "Usuario o contraseña incorrectos", severity: "error" });
             }
@@ -159,6 +159,7 @@ export default function LoginPage() {
                 onClose={() => setNotify({ ...notify, open: false })} />
 
             <LoadingOverlay active={loading} />
+            
         </SignInContainer>
     );
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-    Box,
+import { Box,
     IconButton,
     Table,
     TableBody,

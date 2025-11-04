@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-    Box,
+import { Box,
     TextField,
     IconButton,
     Button,
@@ -13,9 +12,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import { UploadProducts } from "./index";
 
-export default function ProductToolbar({ setLoading, setNotify, onCreate }) {
+function ProductToolbar({ setNotify, onCreate }) {
     const [query, setQuery] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const handleSearch = async () => {
         setLoading(true);
@@ -61,6 +62,7 @@ export default function ProductToolbar({ setLoading, setNotify, onCreate }) {
                     color="success"
                     startIcon={<FileUploadIcon />}>
                     Importar Excel
+                    <UploadProducts setLoading={setLoading} />
                 </Button>
                 <Button variant="contained"
                     color="success"
@@ -77,3 +79,5 @@ export default function ProductToolbar({ setLoading, setNotify, onCreate }) {
         </Box>
     );
 }
+
+export default ProductToolbar;

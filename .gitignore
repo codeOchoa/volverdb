@@ -12,7 +12,11 @@
 
 # testing
 /coverage
-/public
+/public/*.png
+/public/*.ico
+/public/*.svg
+/public/*.ai
+/public/*.jpg
 
 # next.js
 /.next/

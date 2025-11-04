@@ -1,12 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Box, Grid2 as Grid, Paper, Typography } from "@mui/material";
-import ProductToolbar from "@/components/ProductToolbar";
-import ProductTable from "@/components/ProductTable";
-import ProductModal from "@/components/ProductModal";
-import LoadingOverlay from "@/components/LoadingOverlay";
-import NotificationBar from "@/components/NotificationBar";
+import { Box, Grid, Paper, styled, Typography } from "@mui/material";
+import { LoadingOverlay, NotificationBar, ProductModal, ProductTable, ProductToolbar } from "@/components/index";
+
+const DashboardPageBox = styled(Box)(({ theme }) => ({
+    minHeight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
+    maxHeight: 874,
+    padding: theme.spacing(2),
+    [theme.breakpoints.up('sm')]: {
+        padding: theme.spacing(4),
+    },
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundImage:
+        "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    backgroundRepeat: 'no-repeat',
+    ...theme.applyStyles("dark", {
+        backgroundImage:
+            "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
+    }),
+    transition: theme.transitions.create("background-image", {
+        duration: theme.transitions.duration.standard,
+    }),
+}));
 
 export default function DashboardPage() {
     const [products, setProducts] = useState([]);
@@ -19,37 +41,30 @@ export default function DashboardPage() {
     const [openModal, setOpenModal] = useState(false);
     const [editData, setEditData] = useState(null);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch("/api/products");
-                if (!res.ok) throw new Error("Error al cargar productos");
-                const data = await res.json();
-                setProducts(data);
-            } catch (err) {
-                setNotify({
-                    open: true,
-                    message: "No se pudieron cargar los productos",
-                    severity: "error",
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch("/api/products");
+            if (!res.ok) throw new Error("Error al cargar productos");
+            const data = await res.json();
+            setProducts(data);
+        } catch (err) {
+            setNotify({
+                open: true,
+                message: "No se pudieron cargar los productos",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, []);
 
     return (
-        <Box
-            sx={{ height: "100dvh",
-                width: "100%",
-                p: 3,
-                backgroundImage:
-                    "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
-                overflow: "hidden",
-            }}>
+        <DashboardPageBox>
             <Paper elevation={3}
                 sx={{ borderRadius: 3,
                     p: 3,
@@ -104,6 +119,6 @@ export default function DashboardPage() {
                 onClose={() => setNotify({ ...notify, open: false })} />
                 
             <LoadingOverlay active={loading} />
-        </Box>
+        </DashboardPageBox>
     );
 }

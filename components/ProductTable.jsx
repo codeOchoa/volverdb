@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import {
-    Box,
+import { useEffect, useState } from "react";
+import { Box,
     IconButton,
     Tooltip,
     Table,
@@ -15,27 +15,42 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SettingsIcon from "@mui/icons-material/Settings";
+import { EditDialog, NotificationBar } from "@/components/index";
 
-export default function ProductTable({
-        rows,
-        setLoading,
-        setNotify,
-        onEdit,
-        refreshData,
-    }) {
+function ProductTable({ setLoading }) {
+    const [products, setProducts] = useState([]);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
+    const [editOpen, setEditOpen] = useState(false);
+    const [selected, setSelected] = useState(null);
+    const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
 
-    const handleDelete = async (sku) => {
+    useEffect(() => { fetchProducts(); }, []);
+
+    const fetchProducts = async () => {
+        setLoading(true);
+        const res = await fetch("/api/products/list");
+        const data = await res.json();
+        setProducts(data);
+        setLoading(false);
+    };
+
+    const handleEdit = (p) => {
+        setSelected(p);
+        setEditOpen(true);
+    };
+
+    const handleDelete = async (ean) => {
         if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/products/${sku}`, { method: "DELETE" });
+            const res = await fetch(`/api/products/delete?ean=${ean}`, { method: "DELETE" });
+            const result = await res.json();
             if (!res.ok) throw new Error();
             setNotify({
                 open: true,
-                message: "Producto eliminado correctamente",
-                severity: "success",
+                message: result.message || "Producto eliminado",
+                severity: result.ok ? "success" : "error"
             });
             refreshData();
         } catch {
@@ -47,6 +62,7 @@ export default function ProductTable({
         } finally {
             setLoading(false);
         }
+        fetchProducts();
     };
 
     return (
@@ -73,30 +89,30 @@ export default function ProductTable({
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((r) => (
-                            <TableRow key={r.sku}>
-                                <TableCell>{r.sku}</TableCell>
-                                <TableCell>{r.ean}</TableCell>
-                                <TableCell>{r.name}</TableCell>
-                                <TableCell>{r.stock}</TableCell>
-                                <TableCell>${r.cost?.toLocaleString("es-AR")}</TableCell>
-                                <TableCell>${r.price?.toLocaleString("es-AR")}</TableCell>
-                                <TableCell>{r.category}</TableCell>
-                                <TableCell>{r.distributor}</TableCell>
-                                <TableCell>{r.entryDate}</TableCell>
-                                <TableCell>{r.expiryDate}</TableCell>
+                        {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+                            <TableRow key={p.ean}>
+                                <TableCell>{p.sku}</TableCell>
+                                <TableCell>{p.ean}</TableCell>
+                                <TableCell>{p.name}</TableCell>
+                                <TableCell>{p.stock}</TableCell>
+                                <TableCell>${p.cost?.toLocaleString("es-AR")}</TableCell>
+                                <TableCell>${p.price?.toLocaleString("es-AR")}</TableCell>
+                                <TableCell>{p.category}</TableCell>
+                                <TableCell>{p.distributor}</TableCell>
+                                <TableCell>{p.entryDate}</TableCell>
+                                <TableCell>{p.expiryDate}</TableCell>
                                 <TableCell>
                                     <Tooltip title="Editar">
                                         <IconButton color="primary"
                                             size="small"
-                                            onClick={() => onEdit(r)}>
+                                            onClick={() => handleEdit(p)}>
                                             <SettingsIcon />
                                         </IconButton>
                                     </Tooltip>
                                     <Tooltip title="Eliminar">
                                         <IconButton color="error"
                                             size="small"
-                                            onClick={() => handleDelete(r.sku)}>
+                                            onClick={() => handleDelete(p.ean)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -107,9 +123,22 @@ export default function ProductTable({
                 </Table>
             </TableContainer>
 
+            {selected && (
+                <EditDialog open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    product={selected}
+                    onSaved={fetchProducts}
+                    setLoading={setLoading} />
+            )}
+
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
+
             <TablePagination component="div"
                 rowsPerPageOptions={[10, 25, 50]}
-                count={rows.length}
+                count={products.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
@@ -121,3 +150,5 @@ export default function ProductTable({
         </Box>
     );
 }
+
+export default ProductTable;
