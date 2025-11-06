@@ -1,0 +1,4 @@
+﻿SKU,EAN,Producto,Stock,Precio compra,Precio venta,Porcentaje aplicado,Categoría,Distribuidor,Fecha ingreso,Fecha vencimiento
+SKU001,7790000000011,Agua Mineral 500ml,100,180.0,250.0,38.89,Bebidas,AguasMar,2025-11-04,2026-10-25
+SKU002,7790000000028,Gaseosa Cola 2L,60,720.0,950.0,31.94,Bebidas,ColaSur,2025-11-04,2026-06-30
+SKU003,7790000000035,Papas Fritas 120g,40,600.0,850.0,41.67,Snacks,SnackAR,2025-11-04,2025-12-15

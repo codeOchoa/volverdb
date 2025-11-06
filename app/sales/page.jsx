@@ -11,7 +11,14 @@
 import { useState } from "react";
 import { Box, Button, Container, Grid, IconButton, Modal, Paper, styled, Typography } from "@mui/material";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import { CartSummary, LoadingOverlay, NotificationBar, PaymentSection, ProductInput, SalesTable } from "@/components/index";
+import { CartSummary, 
+    GlobalSpeedDial, 
+    LoadingOverlay, 
+    NotificationBar, 
+    PaymentSection, 
+    ProductInput, 
+    SalesTable 
+} from "@/components/index";
 import { useCart } from "@/store/useCart";
 
 const SalesPageContainer = styled(Container)(({ theme }) => ({
@@ -140,6 +147,8 @@ export default function SalesPage() {
                     </Box>
                 </Box>
             </Modal>
+
+            <GlobalSpeedDial />
             
             <NotificationBar
                 open={notify.open}
@@ -147,8 +156,7 @@ export default function SalesPage() {
                 severity={notify.severity}
                 onClose={() => setNotify({ ...notify, open: false })} />
         
-            <LoadingOverlay active={loading} />
-            
+            <LoadingOverlay active={loading} />            
         </SalesPageBox>
     );
 }

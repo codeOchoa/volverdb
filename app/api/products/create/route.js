@@ -27,7 +27,7 @@ export async function POST(req) {
 
         await db.query(
             `INSERT INTO products (sku, ean, name, price, stock, category)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?)`,
             [sku, ean, name, parseFloat(price), parseInt(stock), category || null]
         );
 

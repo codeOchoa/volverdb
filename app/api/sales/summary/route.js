@@ -5,22 +5,22 @@ export async function GET() {
     try {
         const [byMethod] = await db.query(
             `SELECT payment_method,
-                SUM(total) AS total_amount,
-                COUNT(*) AS count
-        FROM sales
-        WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        GROUP BY payment_method
-        ORDER BY total_amount DESC`
+            SUM(total) AS total_amount,
+            COUNT(*) AS count
+            FROM sales
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            GROUP BY payment_method
+            ORDER BY total_amount DESC`
         );
 
         const [byDay] = await db.query(
             `SELECT DATE(date) AS day,
-                SUM(total) AS total_amount,
-                COUNT(*) AS count
-        FROM sales
-        WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
-        GROUP BY DATE(date)
-        ORDER BY day ASC`
+            SUM(total) AS total_amount,
+            COUNT(*) AS count
+            FROM sales
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            GROUP BY DATE(date)
+            ORDER BY day ASC`
         );
 
         const totalGeneral = byMethod.reduce((sum, m) => sum + parseFloat(m.total_amount), 0);

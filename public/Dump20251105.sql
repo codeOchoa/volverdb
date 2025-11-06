@@ -46,14 +46,20 @@ CREATE TABLE `products` (
   `sku` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ean` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `price` decimal(10,2) NOT NULL,
   `stock` int DEFAULT '0',
+  `price_buy` decimal(10,2) NOT NULL,
+  `price_sell` decimal(10,2) DEFAULT NULL,
+  `percent_applied` decimal(5,2) DEFAULT NULL,
   `category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `distributor` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `date_in` date DEFAULT NULL,
+  `date_exp` date DEFAULT NULL,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `ean` (`ean`),
-  UNIQUE KEY `sku_UNIQUE` (`sku`)
+  UNIQUE KEY `sku_UNIQUE` (`sku`),
+  UNIQUE KEY `unique_product` (`ean`,`name`,`distributor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -124,4 +130,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-04  2:00:13
+-- Dump completed on 2025-11-05  2:13:31

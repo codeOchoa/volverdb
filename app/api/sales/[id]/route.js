@@ -11,8 +11,8 @@ export async function GET(req, { params }) {
 
         const [sales] = await db.query(
             `SELECT id, date, payment_method, subtotal, adjustment, total, created_at
-        FROM sales
-        WHERE id = ?`,
+            FROM sales
+            WHERE id = ?`,
             [id]
         );
 
@@ -31,11 +31,11 @@ export async function GET(req, { params }) {
             p.ean,
             si.quantity,
             si.price,
-          (si.quantity * si.price) AS total_item
-        FROM sale_items si
-        INNER JOIN products p ON si.product_id = p.id
-        WHERE si.sale_id = ?
-        ORDER BY si.id ASC`,
+            (si.quantity * si.price) AS total_item
+            FROM sale_items si
+            INNER JOIN products p ON si.product_id = p.id
+            WHERE si.sale_id = ?
+            ORDER BY si.id ASC`,
             [id]
         );
 

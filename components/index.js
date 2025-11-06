@@ -2,8 +2,8 @@ import AdjustDialog from "./AdjustDialog";
 import CartSummary from "./CartSummary";
 // import DashboardPage from "./DashboardPage";
 import EditDialog from "./EditDialog";
-// import ExcelUploader from "./ExcelUploader";
 // import ForgotPassword from "./ForgotPassword";
+import GlobalSpeedDial from "./GlobalSpeedDial";
 import LoadingOverlay from "./LoadingOverlay";
 import NotificationBar from "./NotificationBar";
 import PaymentSection from "./PaymentSection";
@@ -20,8 +20,8 @@ export {
     CartSummary, 
     // DashboardPage, 
     EditDialog, 
-    // ExcelUploader, 
     // ForgotPassword, 
+    GlobalSpeedDial,
     LoadingOverlay, 
     NotificationBar, 
     PaymentSection, 

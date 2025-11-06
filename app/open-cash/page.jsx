@@ -182,7 +182,6 @@ export default function OpenCashPage() {
                 onClose={() => setNotify({ ...notify, open: false })} />
 
             <LoadingOverlay active={loading} />
-
         </OpenCashContainer>
     );
 }

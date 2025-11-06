@@ -16,7 +16,6 @@ export async function POST(req) {
 
         await connection.beginTransaction();
 
-        // 1️⃣ Insertar la venta principal
         const [saleResult] = await connection.query(
             `INSERT INTO sales (date, payment_method, subtotal, adjustment, total, created_at)
             VALUES (?, ?, ?, ?, ?, NOW())`,
@@ -33,7 +32,7 @@ export async function POST(req) {
 
             await connection.query(
                 `INSERT INTO sale_items (sale_id, product_id, quantity, price)
-            VALUES (?, ?, ?, ?)`,
+                VALUES (?, ?, ?, ?)`,
                 [saleId, item.id, item.qty, item.price]
             );
 

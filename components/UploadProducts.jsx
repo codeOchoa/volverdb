@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Typography, Snackbar, Alert } from "@mui/material";
+import { Box,
+    Button,
+    Typography,
+    Paper,
+    Stack,
+} from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { NotificationBar, LoadingOverlay } from "@/components/index";
 
 export default function UploadProducts({ setLoading }) {
     const [file, setFile] = useState(null);
@@ -10,69 +17,111 @@ export default function UploadProducts({ setLoading }) {
         message: "",
         severity: "info",
     });
+    const [loading, setLocalLoading] = useState(false);
 
-    const handleFileChange = (e) => setFile(e.target.files[0]);
+    const handleFileChange = (e) => {
+        const selected = e.target.files[0];
+        setFile(selected || null);
+    };
 
     const handleUpload = async () => {
-        if (!file)
-            return setNotify({
+        if (!file) {
+            setNotify({
                 open: true,
-                message: "Selecciona un archivo",
+                message: "Seleccioná un archivo CSV válido",
                 severity: "warning",
             });
+            return;
+        }
 
-        setLoading(true);
+        setLoading?.(true);
+        setLocalLoading(true);
+
         try {
-            const text = await file.text();
-            const rows = text.split("\n").map((r) => r.split(","));
-            const data = rows.slice(1).map(([ean, name, price, stock]) => ({
-                ean,
-                name,
-                price: parseFloat(price),
-                stock: parseInt(stock),
-            }));
+            const formData = new FormData();
+            formData.append("file", file);
 
             const res = await fetch("/api/products/upload", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: formData,
             });
 
             const result = await res.json();
-            setNotify({
-                open: true,
-                message: result.message || "Carga completada",
-                severity: result.ok ? "success" : "error",
-            });
+
+            if (res.ok) {
+                setNotify({
+                    open: true,
+                    message: result.message || "Carga completada correctamente",
+                    severity: "success",
+                });
+            } else {
+                setNotify({
+                    open: true,
+                    message: result.error || "Error al procesar el archivo",
+                    severity: "error",
+                });
+            }
         } catch (err) {
+            console.error("Error al subir CSV:", err);
             setNotify({
                 open: true,
-                message: "Error al procesar el archivo",
+                message: "Error de conexión o formato inválido",
                 severity: "error",
             });
         } finally {
-            setLoading(false);
+            setLoading?.(false);
+            setLocalLoading(false);
         }
     };
 
     return (
-        <Box textAlign="center" p={2}>
-            <Typography variant="h6" mb={2}>
-                Cargar archivo CSV (EAN, Nombre, Precio, Stock)
+        <Paper elevation={2}
+            sx={{ p: 4,
+                textAlign: "center",
+                borderRadius: 3,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+            }}>
+            <Typography variant="h6" fontWeight={600}>
+                Cargar productos desde CSV
             </Typography>
-            <input type="file" accept=".csv" onChange={handleFileChange} />
+            <Typography variant="body2" color="text.secondary">
+                Estructura requerida: SKU, EAN, Producto, Stock, Precio compra, Precio venta, Porcentaje aplicado, Categoría, Distribuidor, Fecha ingreso, Fecha vencimiento
+            </Typography>
+
+            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                <Button component="label"
+                    variant="outlined"
+                    startIcon={<CloudUploadIcon />}>
+                    Seleccionar archivo
+                    <input type="file"
+                        accept=".csv"
+                        hidden
+                        onChange={handleFileChange} />
+                </Button>
+                {file && (
+                    <Typography variant="body2" color="text.secondary">
+                        {file.name}
+                    </Typography>
+                )}
+            </Stack>
+
             <Button variant="contained"
-                sx={{ mt: 2 }}
-                disabled={!file}
+                sx={{ mt: 2, px: 4 }}
+                disabled={!file || loading}
                 onClick={handleUpload}>
                 Subir y sincronizar
             </Button>
 
-            <Snackbar open={notify.open}
-                autoHideDuration={2500}
-                onClose={() => setNotify({ ...notify, open: false })}>
-                <Alert severity={notify.severity}>{notify.message}</Alert>
-            </Snackbar>
-        </Box>
+            <NotificationBar open={notify.open}
+                message={notify.message}
+                severity={notify.severity}
+                onClose={() => setNotify({ ...notify, open: false })} />
+
+            <LoadingOverlay active={loading} />
+            
+        </Paper>
     );
 }

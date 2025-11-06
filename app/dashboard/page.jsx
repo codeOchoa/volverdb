@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Box, Grid, Paper, styled, Typography } from "@mui/material";
-import { LoadingOverlay, NotificationBar, ProductModal, ProductTable, ProductToolbar } from "@/components/index";
+import { GlobalSpeedDial, LoadingOverlay, NotificationBar, ProductModal, ProductTable, ProductToolbar } from "@/components/index";
 
 const DashboardPageBox = styled(Box)(({ theme }) => ({
     minHeight: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
@@ -106,6 +106,8 @@ export default function DashboardPage() {
                 </Box>
             </Paper>
 
+            <GlobalSpeedDial />
+
             <ProductModal
                 open={openModal}
                 onClose={() => setOpenModal(false)}
@@ -117,7 +119,7 @@ export default function DashboardPage() {
                 message={notify.message}
                 severity={notify.severity}
                 onClose={() => setNotify({ ...notify, open: false })} />
-                
+
             <LoadingOverlay active={loading} />
         </DashboardPageBox>
     );
