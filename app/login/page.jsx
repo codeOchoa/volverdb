@@ -72,26 +72,42 @@ export default function LoginPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        
         try {
             const res = await fetch("/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form),
             });
-
-            if (res.ok) {
-                setNotify({ open: true, message: "Inicio de sesión correcto", severity: "success" });
-                setTimeout(() => router.push("/open-cash"), 200);
-            } else {
-            setNotify({ open: true, message: "Usuario o contraseña incorrectos", severity: "error" });
+        
+            const json = await res.json();
+        
+            if (!json.success) {
+                setNotify({ open: true,
+                    message: json.message || "Credenciales inválidas",
+                    severity: "error",
+                });
+                return;
             }
+
+            setNotify({ open: true,
+                message: "Inicio de sesión correcto",
+                severity: "success",
+            });
+
+            setTimeout(() => router.replace("/open-cash"), 300);
+        
         } catch (err) {
             console.error(err);
-            setNotify({ open: true, message: "Error de conexión", severity: "error" });
+            setNotify({ open: true,
+                message: "Error de conexión con el servidor",
+                severity: "error",
+            });
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <SignInContainer direction="column" justifyContent="space-between">

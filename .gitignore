@@ -13,7 +13,6 @@
 # testing
 /coverage
 /public/*.png
-/public/*.ico
 /public/*.svg
 /public/*.ai
 /public/*.jpg

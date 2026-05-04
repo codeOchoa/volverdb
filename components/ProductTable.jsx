@@ -25,14 +25,32 @@ function ProductTable({ setLoading }) {
     const [selected, setSelected] = useState(null);
     const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
 
-    useEffect(() => { fetchProducts(); }, []);
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
     const fetchProducts = async () => {
         setLoading(true);
-        const res = await fetch("/api/products/list");
-        const data = await res.json();
-        setProducts(data);
-        setLoading(false);
+        try {
+            const res = await fetch("/api/products/list", { credentials: "include" });
+            const json = await res.json();
+
+            if (!res.ok) {
+                throw new Error(json?.message || "Error al listar productos");
+            }
+
+            const list = Array.isArray(json) ? json : (json?.data ?? json?.products ?? []);
+
+            setProducts(Array.isArray(list) ? list : []);
+        } catch (err) {
+            setProducts([]);
+            setNotify({ open: true,
+                message: err?.message || "No se pudieron cargar los productos",
+                severity: "error",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleEdit = (p) => {
@@ -44,26 +62,31 @@ function ProductTable({ setLoading }) {
         if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/products/delete?ean=${ean}`, { method: "DELETE" });
-            const result = await res.json();
-            if (!res.ok) throw new Error();
-            setNotify({
-                open: true,
-                message: result.message || "Producto eliminado",
-                severity: result.ok ? "success" : "error"
+            const res = await fetch(`/api/products/delete?ean=${ean}`, {
+                method: "DELETE",
+                credentials: "include",
             });
-            refreshData();
-        } catch {
-            setNotify({
-                open: true,
-                message: "Error al eliminar producto",
+            const result = await res.json();
+            if (!res.ok) throw new Error(result?.message || "Error al eliminar producto");
+
+            setNotify({ open: true,
+                message: result.message || "Producto eliminado",
+                severity: result.ok ? "success" : "success",
+            });
+
+            await fetchProducts();
+        } catch (err) {
+            setNotify({ open: true,
+                message: err?.message || "Error al eliminar producto",
                 severity: "error",
             });
         } finally {
             setLoading(false);
         }
-        fetchProducts();
     };
+
+    const safeProducts = Array.isArray(products) ? products : [];
+    const paginated = safeProducts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
     return (
         <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
@@ -71,8 +94,7 @@ function ProductTable({ setLoading }) {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            {[
-                                "SKU",
+                            {[ "SKU",
                                 "EAN",
                                 "Producto",
                                 "Stock",
@@ -89,7 +111,7 @@ function ProductTable({ setLoading }) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+                        {paginated.map((p) => (
                             <TableRow key={p.ean}>
                                 <TableCell>{p.sku}</TableCell>
                                 <TableCell>{p.ean}</TableCell>
@@ -103,16 +125,12 @@ function ProductTable({ setLoading }) {
                                 <TableCell>{p.expiryDate}</TableCell>
                                 <TableCell>
                                     <Tooltip title="Editar">
-                                        <IconButton color="primary"
-                                            size="small"
-                                            onClick={() => handleEdit(p)}>
+                                        <IconButton color="primary" size="small" onClick={() => handleEdit(p)}>
                                             <SettingsIcon />
                                         </IconButton>
                                     </Tooltip>
                                     <Tooltip title="Eliminar">
-                                        <IconButton color="error"
-                                            size="small"
-                                            onClick={() => handleDelete(p.ean)}>
+                                        <IconButton color="error" size="small" onClick={() => handleDelete(p.ean)}>
                                             <DeleteIcon />
                                         </IconButton>
                                     </Tooltip>
@@ -128,17 +146,19 @@ function ProductTable({ setLoading }) {
                     onClose={() => setEditOpen(false)}
                     product={selected}
                     onSaved={fetchProducts}
-                    setLoading={setLoading} />
+                    setLoading={setLoading}
+                />
             )}
 
             <NotificationBar open={notify.open}
                 message={notify.message}
                 severity={notify.severity}
-                onClose={() => setNotify({ ...notify, open: false })} />
+                onClose={() => setNotify({ ...notify, open: false })}
+            />
 
             <TablePagination component="div"
                 rowsPerPageOptions={[10, 25, 50]}
-                count={products.length}
+                count={safeProducts.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
@@ -146,7 +166,8 @@ function ProductTable({ setLoading }) {
                     setRowsPerPage(parseInt(e.target.value, 10));
                     setPage(0);
                 }}
-                labelRowsPerPage="Filas por página" />
+                labelRowsPerPage="Filas por página"
+            />
         </Box>
     );
 }

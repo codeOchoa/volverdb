@@ -20,7 +20,12 @@ import { useCart } from "@/store/useCart";
 
 function SalesTable() {
     const { items, inc, dec, setQty, remove } = useCart();
-    const [editEan, setEditEan] = useState(null);
+    const [editId, setEditId] = useState(null);
+
+    const handleQtyChange = (eanOrId, value) => {
+        const qty = Math.max(1, parseInt(value) || 1);
+        setQty(eanOrId, qty);
+    };
 
     return (
         <TableContainer component={Box} sx={{ bgcolor: "background.paper" }}>
@@ -44,61 +49,82 @@ function SalesTable() {
                 </TableHead>
 
                 <TableBody>
-                    {items.map((it, idx) => (
-                        <TableRow key={it.ean} hover>
-                            <TableCell>{idx + 1}</TableCell>
-                            <TableCell>
-                                <Typography variant="body2" fontFamily="monospace">
-                                    {it.ean}
-                                </Typography>
-                            </TableCell>
-                            <TableCell>
-                                <Typography fontWeight={600}>{it.name}</Typography>
-                            </TableCell>
-                            <TableCell align="center">
-                                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
-                                    <IconButton onClick={() => dec(it.ean)} size="small">
-                                        <RemoveRoundedIcon />
-                                    </IconButton>
+                    {items.map((it, idx) => {
+                        const key = it.id || it.ean;
 
-                                    {editEan === it.ean ? (
-                                        <TextField autoFocus
-                                            defaultValue={it.qty}
-                                            onBlur={(e) => {
-                                                setQty(it.ean, e.target.value);
-                                                setEditEan(null);
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    setQty(it.ean, e.currentTarget.value);
-                                                    setEditEan(null);
-                                                }
-                                            }}
-                                            size="small"
-                                            inputProps={{ inputMode: "numeric", pattern: "[0-9]*", style: { textAlign: "center", width: 56 } }} />
-                                    ) : (
-                                        <Typography onClick={() => setEditEan(it.ean)}
-                                            sx={{ cursor: "text", userSelect: "none", minWidth: 32, textAlign: "center" }}>
-                                            {it.qty}
-                                        </Typography>
-                                    )}
+                        return (
+                            <TableRow key={key} hover>
+                                <TableCell>{idx + 1}</TableCell>
+                                <TableCell>
+                                    <Typography variant="body2" fontFamily="monospace">
+                                        {it.ean}
+                                    </Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <Typography fontWeight={600}>{it.name}</Typography>
+                                </TableCell>
+                                <TableCell align="center">
+                                    <Box sx={{ display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 1,
+                                        }}>
+                                        <IconButton onClick={() => dec(key)} size="small">
+                                            <RemoveRoundedIcon />
+                                        </IconButton>
 
-                                    <IconButton onClick={() => inc(it.ean)} size="small">
-                                        <AddRoundedIcon />
-                                    </IconButton>
-                                </Box>
-                            </TableCell>
-                            <TableCell align="right">${it.price.toLocaleString("es-AR")}</TableCell>
-                            <TableCell align="right">${(it.price * it.qty).toLocaleString("es-AR")}</TableCell>
-                            <TableCell>
-                                <Tooltip title="Eliminar">
-                                    <IconButton onClick={() => remove(it.ean)} color="error" size="small">
-                                        <DeleteOutlineRoundedIcon />
-                                    </IconButton>
-                                </Tooltip>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                        {editId === key ? (
+                                            <TextField autoFocus
+                                                defaultValue={it.qty}
+                                                onBlur={(e) => {
+                                                    handleQtyChange(key, e.target.value);
+                                                    setEditId(null);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        handleQtyChange(key, e.currentTarget.value);
+                                                        setEditId(null);
+                                                    }
+                                                }}
+                                                size="small"
+                                                inputProps={{ inputMode: "numeric",
+                                                    pattern: "[0-9]*",
+                                                    style: {
+                                                        textAlign: "center",
+                                                        width: 56,
+                                                    },
+                                                }} />
+                                        ) : (
+                                            <Typography
+                                                onClick={() => setEditId(key)}
+                                                sx={{ cursor: "text", userSelect: "none", minWidth: 32, textAlign: "center" }}>
+                                                {it.qty}
+                                            </Typography>
+                                        )}
+
+                                        <IconButton onClick={() => inc(key)} size="small">
+                                            <AddRoundedIcon />
+                                        </IconButton>
+                                    </Box>
+                                </TableCell>
+                                <TableCell align="right">
+                                    ${it.price.toLocaleString("es-AR")}
+                                </TableCell>
+                                <TableCell align="right">
+                                    ${(it.price * it.qty).toLocaleString("es-AR")}
+                                </TableCell>
+                                <TableCell>
+                                    <Tooltip title="Eliminar">
+                                        <IconButton onClick={() => remove(key)}
+                                            color="error"
+                                            size="small">
+                                            <DeleteOutlineRoundedIcon />
+                                        </IconButton>
+                                    </Tooltip>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
 
                     {items.length === 0 && (
                         <TableRow>

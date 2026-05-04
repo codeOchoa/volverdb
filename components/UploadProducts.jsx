@@ -8,7 +8,7 @@ import { Box,
     Stack,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { NotificationBar, LoadingOverlay } from "@/components/index";
+import { NotificationBar, LoadingOverlay } from "@/components";
 
 export default function UploadProducts({ setLoading }) {
     const [file, setFile] = useState(null);
@@ -20,14 +20,27 @@ export default function UploadProducts({ setLoading }) {
     const [loading, setLocalLoading] = useState(false);
 
     const handleFileChange = (e) => {
-        const selected = e.target.files[0];
-        setFile(selected || null);
+        const selected = e.target.files?.[0];
+
+        if (!selected) {
+            setFile(null);
+            return;
+        }
+
+        if (selected.type !== "text/csv") {
+            setNotify({ open: true,
+                message: "Solo se permiten archivos CSV",
+                severity: "error",
+            });
+            return;
+        }
+
+        setFile(selected);
     };
 
     const handleUpload = async () => {
         if (!file) {
-            setNotify({
-                open: true,
+            setNotify({ open: true,
                 message: "Seleccioná un archivo CSV válido",
                 severity: "warning",
             });
@@ -49,22 +62,22 @@ export default function UploadProducts({ setLoading }) {
             const result = await res.json();
 
             if (res.ok) {
-                setNotify({
-                    open: true,
-                    message: result.message || "Carga completada correctamente",
+                setNotify({ open: true,
+                    message:
+                        result.message ||
+                        "Carga completada correctamente",
                     severity: "success",
                 });
+                setFile(null);
             } else {
-                setNotify({
-                    open: true,
+                setNotify({ open: true,
                     message: result.error || "Error al procesar el archivo",
                     severity: "error",
                 });
             }
         } catch (err) {
             console.error("Error al subir CSV:", err);
-            setNotify({
-                open: true,
+            setNotify({ open: true,
                 message: "Error de conexión o formato inválido",
                 severity: "error",
             });
@@ -87,11 +100,14 @@ export default function UploadProducts({ setLoading }) {
             <Typography variant="h6" fontWeight={600}>
                 Cargar productos desde CSV
             </Typography>
+
             <Typography variant="body2" color="text.secondary">
-                Estructura requerida: SKU, EAN, Producto, Stock, Precio compra, Precio venta, Porcentaje aplicado, Categoría, Distribuidor, Fecha ingreso, Fecha vencimiento
+                Estructura requerida: SKU, EAN, Producto, Stock, Precio compra,
+                Precio venta, Porcentaje aplicado, Categoría, Distribuidor,
+                Fecha ingreso, Fecha vencimiento
             </Typography>
 
-            <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+            <Stack direction="row" spacing={2}>
                 <Button component="label"
                     variant="outlined"
                     startIcon={<CloudUploadIcon />}>
@@ -107,7 +123,7 @@ export default function UploadProducts({ setLoading }) {
                     </Typography>
                 )}
             </Stack>
-
+            
             <Button variant="contained"
                 sx={{ mt: 2, px: 4 }}
                 disabled={!file || loading}
@@ -121,7 +137,6 @@ export default function UploadProducts({ setLoading }) {
                 onClose={() => setNotify({ ...notify, open: false })} />
 
             <LoadingOverlay active={loading} />
-            
         </Paper>
     );
 }

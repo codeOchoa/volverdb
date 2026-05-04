@@ -1,47 +1,78 @@
-import db from "@/lib/db";
+import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        const [byMethod] = await db.query(
-            `SELECT payment_method,
-            SUM(total) AS total_amount,
+        const days = 7;
+
+        const byMethodRows = await query(
+            `SELECT 
+            payment_method AS paymentMethod,
+            SUM(total) AS totalAmount,
             COUNT(*) AS count
             FROM sales
-            WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
             GROUP BY payment_method
-            ORDER BY total_amount DESC`
+            ORDER BY totalAmount DESC`,
+            [days]
         );
 
-        const [byDay] = await db.query(
-            `SELECT DATE(date) AS day,
-            SUM(total) AS total_amount,
+        const methods = byMethodRows.map((m) => ({
+            paymentMethod: m.paymentMethod,
+            totalAmount: Number(m.totalAmount) || 0,
+            count: Number(m.count) || 0,
+        }));
+
+        const byDayRows = await query(
+            `SELECT 
+            DATE(date) AS day,
+            SUM(total) AS totalAmount,
             COUNT(*) AS count
             FROM sales
-            WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            WHERE date >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
             GROUP BY DATE(date)
-            ORDER BY day ASC`
+            ORDER BY day ASC`,
+            [days]
         );
 
-        const totalGeneral = byMethod.reduce((sum, m) => sum + parseFloat(m.total_amount), 0);
-        const cantidadVentas = byMethod.reduce((sum, m) => sum + parseInt(m.count), 0);
+        const byDay = byDayRows.map((d) => ({
+            day: d.day,
+            totalAmount: Number(d.totalAmount) || 0,
+            count: Number(d.count) || 0,
+        }));
 
-        return NextResponse.json({
-            range: {
-                start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                end: new Date().toISOString().split("T")[0],
-            },
-            resumen: {
-                totalGeneral,
-                cantidadVentas,
-                metodos: byMethod,
-                porDia: byDay,
-            },
-        });
-    } catch (err) {
-        console.error("Error al obtener resumen de ventas:", err);
+        const totalAmountGeneral = methods.reduce((sum, m) => sum + m.totalAmount, 0);
+        const totalTransactions = methods.reduce((sum, m) => sum + m.count, 0);
+
+        const endDate = new Date().toISOString().split("T")[0];
+        const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0];
+
         return NextResponse.json(
-            { message: "Error interno del servidor", error: err.message },
+            {
+                success: true,
+                range: { start: startDate,
+                    end: endDate,
+                },
+                summary: { totalAmount: totalAmountGeneral,
+                    totalTransactions,
+                    methods,
+                    byDay,
+                },
+            },
+            { status: 200 }
+        );
+
+    } catch (err) {
+        console.error("❌ Error al obtener resumen de ventas:", err);
+
+        return NextResponse.json(
+            { success: false,
+                message: "Error interno del servidor.",
+                details:
+                    process.env.NODE_ENV ? err.message : undefined,
+            },
             { status: 500 }
         );
     }

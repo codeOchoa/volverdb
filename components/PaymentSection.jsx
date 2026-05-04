@@ -3,11 +3,11 @@
 import { Box, FormControl, InputLabel, MenuItem, Select, Typography } from "@mui/material";
 import { useCart } from "@/store/useCart";
 
-const methods = ["Efectivo", "QR", "Tarjeta Debito", "Tarjeta Credito", "Transferencia", "NFC", "Link", "Otros"];
+const METHODS = [ "Efectivo", "QR", "Tarjeta Debito", "Tarjeta Credito", "Transferencia", "NFC", "Link", "Otros" ];
 
 function PaymentSection() {
-    const method = useCart((s) => s.paymentMethod);
-    const setMethod = useCart((s) => s.setPaymentMethod);
+    const paymentMethod = useCart((s) => s.paymentMethod);
+    const setPaymentMethod = useCart((s) => s.setPaymentMethod);
 
     return (
         <Box sx={{ mt: 2 }}>
@@ -21,10 +21,10 @@ function PaymentSection() {
                     bgcolor: theme.palette.mode === "dark" ? "grey.900" : "grey.900",
                     color: "common.white",
                 })}>
-                Metodo de Pago
+                Método de Pago
             </Typography>
-
-            <Box sx={{ border: "1px solid",
+            <Box
+                sx={{ border: "1px solid",
                     borderTop: "none",
                     borderColor: "divider",
                     borderBottomLeftRadius: 12,
@@ -34,12 +34,12 @@ function PaymentSection() {
                 <FormControl fullWidth>
                     <InputLabel id="payment-method-label">Seleccionar</InputLabel>
                     <Select labelId="payment-method-label"
+                        value={paymentMethod}
                         label="Seleccionar"
-                        value={method}
-                        onChange={(e) => setMethod(e.target.value)}>
-                        {methods.map((m) => (
-                            <MenuItem key={m} value={m}>
-                                {m}
+                        onChange={(e) => setPaymentMethod(e.target.value)}>
+                        {METHODS.map((method) => (
+                            <MenuItem key={method} value={method}>
+                                {method}
                             </MenuItem>
                         ))}
                     </Select>

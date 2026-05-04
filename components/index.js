@@ -1,6 +1,5 @@
 import AdjustDialog from "./AdjustDialog";
 import CartSummary from "./CartSummary";
-// import DashboardPage from "./DashboardPage";
 import EditDialog from "./EditDialog";
 // import ForgotPassword from "./ForgotPassword";
 import GlobalSpeedDial from "./GlobalSpeedDial";
@@ -18,7 +17,6 @@ import UploadProducts from "./UploadProducts";
 export {
     AdjustDialog, 
     CartSummary, 
-    // DashboardPage, 
     EditDialog, 
     // ForgotPassword, 
     GlobalSpeedDial,

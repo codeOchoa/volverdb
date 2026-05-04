@@ -17,6 +17,16 @@ import { Box,
 } from "@mui/material";
 import { LoadingOverlay, NotificationBar } from "@/components/index";
 import { getDateTime } from "@/utils/getDateTime";
+import { api } from "@/lib/api"; 
+
+const formatNumberWithSeparator = (value) => {
+    if (!value) return "";
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+const removeFormatting = (value) => {
+    return value.replace(/\./g, "");
+};
 
 const OpenCashContainer = styled(Stack)(({ theme }) => ({
     height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
@@ -49,24 +59,35 @@ export default function OpenCashPage() {
     useEffect(() => {
         const checkCashStatus = async () => {
             try {
-                const res = await fetch("/api/cash/status");
+                const res = await fetch("/api/cash/status", {
+                    credentials: "include",
+                });
+
                 const data = await res.json();
 
-                if (data.ok && data.isOpen) {
-                    setNotify({
-                        open: true,
+                if (data.success && data.autoClosed) {
+                    setNotify({ open: true,
+                        message: "La caja anterior fue cerrada automáticamente",
+                        severity: "info",
+                    });
+                    setLoading(false);
+                    return;
+                }
+
+                if (data.success && data.isOpen) {
+                    setNotify({ open: true,
                         message: "Caja ya abierta, redirigiendo a ventas...",
                         severity: "info",
                     });
-                    setTimeout(() => router.push("/sales"), 1500);
-                } else {
-                    setLoading(false);
+                    setTimeout(() => router.replace("/sales"), 1200);
+                    return;
                 }
+
+                setLoading(false);
             } catch (err) {
-                console.error("Error al verificar caja:", err);
-                setNotify({
-                    open: true,
-                    message: "No se pudo verificar el estado de la caja",
+                console.error(err);
+                setNotify({ open: true,
+                    message: "Error consultando estado de caja",
                     severity: "error",
                 });
                 setLoading(false);
@@ -76,28 +97,51 @@ export default function OpenCashPage() {
         checkCashStatus();
     }, [router]);
 
+    const handleAmountChange = (e) => {
+        const rawValue = removeFormatting(e.target.value);
+        
+        if (rawValue === "" || /^\d+$/.test(rawValue)) {
+            setAmount(rawValue);
+        }
+    };
+
     const handleOpenCash = async () => {
-        const { date, full } = getDateTime();
+        const date = getDateTime();
         setOpenConfirm(false);
         setLoading(true);
+
         try {
             const res = await fetch("/api/cash/open", {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ date, initialAmount: amount, openedAt: full }),
+                body: JSON.stringify({ date, initialAmount: amount }),
             });
 
-            const data = await res.json();
+            const json = await res.json();
 
-            if (data.ok) {
-                setNotify({ open: true, message: "Caja abierta correctamente", severity: "success" });
-                localStorage.setItem("cashStatus", date);
-                setTimeout(() => router.push("/sales"), 800);
+            if (json.ok || json.success) {
+                setNotify({ open: true,
+                    message: "Caja abierta correctamente",
+                    severity: "success",
+                });
+
+                setTimeout(() => router.push("/sales"), 700);
+
             } else {
-                setNotify({ open: true, message: "Error al abrir la caja", severity: "error" });
+                setNotify({ open: true,
+                    message: json.message || "Error al abrir la caja",
+                    severity: "error",
+                });
             }
-        } catch {
-            setNotify({ open: true, message: "Error de conexión", severity: "error" });
+
+        } catch (err) {
+            console.error(err);
+            setNotify({ open: true,
+                message: err.message || "Error de conexión",
+                severity: "error",
+            });
+
         } finally {
             setLoading(false);
         }
@@ -128,8 +172,8 @@ export default function OpenCashPage() {
                     <Input id="standard-adornment-amount"
                         size="normal"
                         inputProps={{ min: 0, inputMode: "decimal" }}
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        value={formatNumberWithSeparator(amount)}
+                        onChange={handleAmountChange}
                         sx={{ fontSize: "3rem", 
                             fontWeight: 100, 
                             height: "5rem", 
@@ -165,7 +209,7 @@ export default function OpenCashPage() {
                         Confirmar apertura
                     </Typography>
                     <Typography variant="body2" mb={3}>
-                        ¿Deseás abrir la caja con ${amount} en efectivo?
+                        ¿Deseás abrir la caja con ${formatNumberWithSeparator(amount)} en efectivo?
                     </Typography>
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
                         <Button onClick={() => setOpenConfirm(false)}>Cancelar</Button>

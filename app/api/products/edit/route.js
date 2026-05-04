@@ -1,4 +1,4 @@
-import db from "@/lib/db";
+import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function PUT(req) {
@@ -11,60 +11,117 @@ export async function PUT(req) {
             ean,
             name,
             stock,
-            price_buy,
-            price_sell,
-            percent_applied,
+            cost,
+            price,
+            percent,
             category,
             distributor,
-            date_in,
-            date_exp
+            entryDate,
+            expiryDate
         } = data;
 
-        if (!ean || !name || !distributor) {
-            return NextResponse.json({ error: "EAN, nombre y distribuidor son obligatorios" }, { status: 400 });
+        if (!id) {
+            return NextResponse.json(
+                { success: false, message: "ID es obligatorio." },
+                { status: 400 }
+            );
         }
 
-        const [existing] = await db.query(
-            "SELECT id FROM products WHERE ean = ? AND name = ? AND distributor = ?",
-            [ean, name, distributor]
+        if (!ean || !name || !distributor) {
+            return NextResponse.json(
+                { success: false, message: "EAN, nombre y distribuidor son obligatorios." },
+                { status: 400 }
+            );
+        }
+
+        const existing = await query(
+            "SELECT * FROM products WHERE id = ? LIMIT 1",
+            [id]
         );
 
         if (existing.length === 0) {
-            return NextResponse.json({ error: "Producto no encontrado" }, { status: 404 });
+            return NextResponse.json(
+                { success: false, message: "Producto no encontrado." },
+                { status: 404 }
+            );
         }
 
-        await db.query(
-            `UPDATE products SET 
-            sku = ?, 
-            stock = ?, 
-            price_buy = ?, 
-            price_sell = ?, 
-            percent_applied = ?, 
-            category = ?, 
-            distributor = ?, 
-            date_in = ?, 
-            date_exp = ?, 
+        const duplicate = await query(
+            `SELECT id FROM products
+            WHERE (sku = ? AND distributor = ? AND id != ?)
+            OR (ean = ? AND distributor = ? AND id != ?)
+            LIMIT 1`,
+            [sku, distributor, id, ean, distributor, id]
+        );
+
+        if (duplicate.length > 0) {
+            return NextResponse.json(
+                { success: false,
+                    message: "Ya existe otro producto con este SKU/EAN asociado al mismo distribuidor.",
+                },
+                { status: 409 }
+            );
+        }
+
+        const safeStock = Number.parseInt(stock, 10) || 0;
+        const safePriceBuy = Number(cost) || 0;
+        const safePriceSell = Number(price) || 0;
+        const safePercent = Number(percent) || 0;
+
+        const safeEntryDate =
+            entryDate?.trim()
+                ? new Date(entryDate).toISOString().slice(0, 19).replace("T", " ")
+                : null;
+
+        const safeExpiryDate =
+            expiryDate?.trim()
+                ? new Date(expiryDate).toISOString().slice(0, 19).replace("T", " ")
+                : null;
+
+        await query(
+            `UPDATE products SET
+            sku = ?,
+            ean = ?,
+            name = ?,
+            stock = ?,
+            price_buy = ?,
+            price_sell = ?,
+            percent_applied = ?,
+            category = ?,
+            distributor = ?,
+            date_in = ?,
+            date_exp = ?,
             updated_at = NOW()
-            WHERE ean = ? AND name = ? AND distributor = ?`,
+            WHERE id = ?`,
             [
                 sku || null,
-                stock || 0,
-                price_buy || 0,
-                price_sell || 0,
-                percent_applied || 0,
-                category || null,
-                distributor || null,
-                date_in || null,
-                date_exp || null,
                 ean,
                 name,
+                safeStock,
+                safePriceBuy,
+                safePriceSell,
+                safePercent,
+                category || null,
                 distributor,
+                safeEntryDate,
+                safeExpiryDate,
+                id,
             ]
         );
 
-        return NextResponse.json({ message: "Producto actualizado correctamente", success: true });
+        return NextResponse.json(
+            { success: true, message: "Producto actualizado correctamente." },
+            { status: 200 }
+        );
+
     } catch (err) {
-        console.error("Error al editar producto:", err);
-        return NextResponse.json({ error: "Error interno del servidor", details: err.message }, { status: 500 });
+        console.error("❌ Error al editar producto:", err);
+        return NextResponse.json(
+            { success: false,
+                message: "Error interno del servidor.",
+                details: process.env.NODE_ENV ? err.message : undefined,
+            },
+            { status: 500 }
+        );
     }
 }

@@ -1,6 +1,6 @@
-import db from "@/lib/db";
 import { NextResponse } from "next/server";
 import { parse } from "csv-parse/sync";
+import db from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -27,24 +27,24 @@ export async function POST(req) {
 
         for (const row of records) {
             const {
-                SKU,
-                EAN,
-                Producto,
-                Stock,
-                "Precio compra": price_buy,
-                "Precio venta": price_sell,
-                "Porcentaje aplicado": percent_applied,
-                Categoría,
-                Distribuidor,
-                "Fecha ingreso": date_in,
-                "Fecha vencimiento": date_exp,
+                sku,
+                ean,
+                Producto: name,
+                Stock: stock,
+                "Precio compra": cost,
+                "Precio venta": price,
+                "Porcentaje aplicado": percent,
+                Categoría: category,
+                Distribuidor: distributor,
+                "Fecha ingreso": entryDate,
+                "Fecha vencimiento": expiryDate
             } = row;
 
-            if (!EAN || !Producto || !Distribuidor) continue;
+            if (!ean || !name || !distributor) continue;
 
             const [existing] = await db.query(
                 "SELECT id FROM products WHERE ean = ? AND name = ? AND distributor = ?",
-                [EAN, Producto, Distribuidor]
+                [ean, name, distributor]
             );
 
             if (existing.length > 0) {
@@ -56,42 +56,44 @@ export async function POST(req) {
                     price_sell = ?, 
                     percent_applied = ?, 
                     category = ?, 
+                    distributor = ?, 
                     date_in = ?, 
                     date_exp = ?, 
                     updated_at = NOW()
                     WHERE ean = ? AND name = ? AND distributor = ?`,
                     [
-                        SKU,
-                        Stock || 0,
-                        price_buy || 0,
-                        price_sell || null,
-                        percent_applied || null,
-                        Categoría || null,
-                        date_in || null,
-                        date_exp || null,
-                        EAN,
-                        Producto,
-                        Distribuidor,
+                        sku || null,
+                        stock || 0,
+                        cost || 0,
+                        price || 0,
+                        percent || 0,
+                        category || null,
+                        distributor || null,
+                        entryDate || null,
+                        expiryDate || null,
+                        ean,
+                        name,
+                        distributor
                     ]
                 );
                 updated++;
             } else {
                 await db.query(
                     `INSERT INTO products 
-                    (sku, ean, name, stock, price_buy, price_sell, percent_applied, category, distributor, date_in, date_exp) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    (sku, ean, name, stock, price_buy, price_sell, percent_applied, category, distributor, date_in, date_exp, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
                     [
-                        SKU,
-                        EAN,
-                        Producto,
-                        Stock || 0,
-                        price_buy || 0,
-                        price_sell || null,
-                        percent_applied || null,
-                        Categoría || null,
-                        Distribuidor,
-                        date_in || null,
-                        date_exp || null,
+                        sku || null,
+                        ean,
+                        name,
+                        stock || 0,
+                        cost || 0,
+                        price || 0,
+                        percent || 0,
+                        category || null,
+                        distributor || null,
+                        entryDate || null,
+                        expiryDate || null
                     ]
                 );
                 inserted++;

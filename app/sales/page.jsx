@@ -1,16 +1,7 @@
-// import { useHotkeys } from "@/hooks/index";
-
-// useHotkeys({
-//     onClear: handleClearCart,
-//     onFinish: handleFinalizeSale,
-//     onCancel: closeModal,
-// });
-
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Container, Grid, IconButton, Modal, Paper, styled, Typography } from "@mui/material";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import { Box, Container, Grid, Paper, styled, Typography } from "@mui/material";
 import { CartSummary, 
     GlobalSpeedDial, 
     LoadingOverlay, 
@@ -19,7 +10,7 @@ import { CartSummary,
     ProductInput, 
     SalesTable 
 } from "@/components/index";
-import { useCart } from "@/store/useCart";
+// import { useHotkeys } from "@/hooks/index";
 
 const SalesPageContainer = styled(Container)(({ theme }) => ({
     width: '100%',
@@ -55,20 +46,8 @@ const SalesPageBox = styled(Box)(({ theme }) => ({
 }));
 
 export default function SalesPage() {
-    const [confirmLeave, setConfirmLeave] = useState(false);
     const [loading, setLoading] = useState(false);
     const [notify, setNotify] = useState({ open: false, message: "", severity: "info" });
-    const clear = useCart((s) => s.clear);
-
-    const handleLeave = async () => {
-        setConfirmLeave(false);
-        setLoading(true);
-        await new Promise((r) => setTimeout(r, 700));
-        clear();
-        setLoading(false);
-        setNotify({ open: true, message: "Sesión cerrada, carrito eliminado", severity: "info" });
-        window.location.href = "/dashboard";
-    };
 
     return (
         <SalesPageBox>
@@ -83,13 +62,8 @@ export default function SalesPage() {
                     }}>
                     <Box sx={{ position: "relative", mb: 2, display: "flex", justifyContent: "center", alignItems: "center" }}>
                         <Typography variant="h4" fontWeight={800} letterSpacing={0.5}>
-                            CARRITO
+                            Carrito
                         </Typography>
-                        <IconButton onClick={() => setConfirmLeave(true)}
-                            sx={{ position: "absolute", right: 0, borderRadius: 2, border: "1px solid", borderColor: "divider" }}
-                            aria-label="Configuración">
-                            <SettingsRoundedIcon />
-                        </IconButton>
                     </Box>
 
                     <Box
@@ -104,7 +78,7 @@ export default function SalesPage() {
                         <SalesTable />
                     </Box>
 
-                    <Grid container spacing={3} sx={{ mt: 2 }}>
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid size={{ xs: 12, md: 8 }}>
                             <ProductInput />
                             <PaymentSection />
@@ -120,33 +94,6 @@ export default function SalesPage() {
                     </Grid>
                 </Paper>
             </SalesPageContainer>
-
-            <Modal open={confirmLeave} onClose={() => setConfirmLeave(false)}>
-                <Box
-                    sx={{ position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 360,
-                        bgcolor: "background.paper",
-                        p: 3,
-                        borderRadius: 2,
-                        boxShadow: 24,
-                    }}>
-                    <Typography variant="h6" mb={1}>
-                        Salir al dashboard
-                    </Typography>
-                    <Typography variant="body2" mb={3}>
-                        Si sales del carrito, este será eliminado.
-                    </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                        <Button onClick={() => setConfirmLeave(false)}>Cancelar</Button>
-                        <Button variant="contained" color="error" onClick={handleLeave}>
-                            Continuar
-                        </Button>
-                    </Box>
-                </Box>
-            </Modal>
 
             <GlobalSpeedDial />
             

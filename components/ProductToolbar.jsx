@@ -83,37 +83,50 @@ function ProductToolbar({ setNotify, onCreate }) {
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <TextField variant="outlined"
                     placeholder="SKU / EAN / Nombre del Producto"
-                    size="small"
+                    size="medium"
                     fullWidth
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton onClick={handleSearch}>
-                                    <SearchIcon />
-                                </IconButton>
-                            </InputAdornment>
-                        ),
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={handleSearch}
+                                        disableRipple={false}
+                                        sx={{ backgroundColor: "transparent !important", 
+                                            borderColor: "transparent !important",
+                                            "&:hover": {
+                                                backgroundColor: "transparent", 
+                                                borderColor: "transparent",
+                                            },
+                                            "& .MuiTouchRipple-root": {
+                                                color: "rgba(0,0,0,0.3)",
+                                            },
+                                        }}>
+                                        <SearchIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
                     }} />
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={2}>
                     <Button variant="contained"
                         color="success"
                         startIcon={<FileUploadIcon />}
                         onClick={() => setOpenUpload(true)}>
-                        Importar Excel
+                        Importar
                     </Button>
                     <Button variant="contained"
                         color="success"
                         startIcon={<FileDownloadIcon />}
                         onClick={handleExport}>
-                        Exportar Excel
+                        Exportar
                     </Button>
                     <Button variant="contained"
                         color="success"
                         startIcon={<AddCircleIcon />}
                         onClick={onCreate}>
-                        Crear producto
+                        Crear
                     </Button>
                 </Stack>
             </Box>

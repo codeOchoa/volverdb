@@ -1,4 +1,5 @@
-import db from "@/lib/db";
+import { query } from "@/lib/db";
+import { NextResponse } from "next/server";
 
 export async function GET(req) {
     try {
@@ -6,18 +7,43 @@ export async function GET(req) {
         const ean = searchParams.get("ean");
 
         if (!ean) {
-            return Response.json({ error: "Parámetro 'ean' requerido" }, { status: 400 });
+        return NextResponse.json(
+                { success: false, message: "Parámetro 'ean' requerido." },
+                { status: 400 }
+            );
         }
-
-        const [rows] = await db.query("SELECT * FROM products WHERE ean = ? LIMIT 1", [ean]);
+        const rows = await query(
+            `SELECT 
+            id,
+            sku,
+            ean,
+            name,
+            price_sell AS price,
+            stock,
+            distributor
+            FROM products
+            WHERE ean = ?
+            AND (deleted = 0 OR deleted IS NULL)
+            LIMIT 1`,
+            [ean]
+        );
 
         if (rows.length === 0) {
-            return Response.json(null, { status: 404 });
+            return NextResponse.json(
+                { success: false, message: "Producto no encontrado." },
+                { status: 404 }
+            );
         }
 
-        return Response.json(rows[0]);
+        return NextResponse.json({ success: true, data: rows[0] }, { status: 200 });
     } catch (err) {
-        console.error("Error buscando producto:", err);
-        return Response.json({ error: err.message }, { status: 500 });
+        console.error("❌ Error buscando producto:", err);
+        return NextResponse.json(
+            { success: false,
+                message: "Error interno del servidor.",
+                details: process.env.NODE_ENV ? err.message : undefined,
+            },
+            { status: 500 }
+        );
     }
 }
